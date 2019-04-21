@@ -36,7 +36,7 @@
                 <td width="30%">{{ job.filename }}</td>
                 <td width="20%">{{ job.started_at }}</td>
                 <td width="20%">{{ job.finished_at }}</td>
-                <td width="20%"><a href="/jobs/{{ job.job_id }}" class="btn btn-sm btn-outline-primary">Download</a></td>
+                <td width="20%"><a href="{{ url_for('views.index') }}jobs/{{ job.job_id }}" class="btn btn-sm btn-outline-primary">Download</a></td>
               </tr>
               {% endfor %}
               {% else %}

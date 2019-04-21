@@ -18,7 +18,7 @@
       <h4>Extracted Data</h4>
     </div>
     <div class="col-md-6 col-sm-6 col-xs-12">
-      <form action="/download" method="post" id="download-form">
+      <form action="{{ url_for('views.index') }}download" method="post" id="download-form">
         <label for="format">Download</label>
         <div class="input-group">
           <select class="form-control" name="format" id="format">

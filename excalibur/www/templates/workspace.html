@@ -47,7 +47,7 @@
             {% for page, imagepath in imagepaths.items() %}
             <li id="thumbnail-page">
               <a href="#image-div-{{ page }}">
-                <img src="{{ imagepath }}" id="image-thumb-{{ page }}" class="img-thumbnail"/>
+                <img src="/ui/{{ imagepath }}" id="image-thumb-{{ page }}" class="img-thumbnail"/>
               </a>
               <p class="text-center">{{ page }}</p>
             </li>
@@ -62,7 +62,7 @@
         <div class="row mx-0 mb-2">
           <div class="col-md-12 col-sm-12 col-xs-12">
             <div id="image-div-{{ page }}">
-              <img src="{{ imagepath }}" id="image-{{ page }}" class="image-area"/>
+              <img src="/ui/{{ imagepath }}" id="image-{{ page }}" class="image-area"/>
             </div>
           </div>
         </div>

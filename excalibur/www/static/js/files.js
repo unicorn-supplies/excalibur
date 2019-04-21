@@ -24,14 +24,14 @@ $(document).ready(function () {
     var pages = $('#pages').val() ? $('#pages').val() : 1;
     data.append('pages', pages);
     $.ajax({
-      url: '/files',
+      url: '/ui/files',
       type: 'POST',
       cache: false,
       contentType: false,
       data: data,
       processData: false,
       success: function (data) {
-        var redirect = '{0}//{1}/workspaces/{2}'.format(window.location.protocol, window.location.host, data['file_id']);
+        var redirect = '{0}//{1}/ui/workspaces/{2}'.format(window.location.protocol, window.location.host, data['file_id']);
         window.location.replace(redirect);
       }
     });

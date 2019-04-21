@@ -27,30 +27,30 @@
   <body>
 
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top primary-bg">
-      <a class="navbar-brand" href="/">Excalibur</a>
+      <a class="navbar-brand" href="{{ url_for('views.index') }}">Excalibur</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <!-- http://jinja.pocoo.org/docs/2.10/tricks/#highlighting-active-menu-items -->
       {% set navigation_bar = [
-          ('/files', 'files', 'Files'),
-          ('/rules', 'rules', 'Rules'),
-          ('/jobs', 'jobs', 'Jobs')
+      ('files', 'files', 'Files'),
+      ('rules', 'rules', 'Rules'),
+      ('jobs', 'jobs', 'Jobs')
       ] -%}
       {% set active_page = active_page|default('files') -%}
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           {% for href, id, caption in navigation_bar %}
-            {% if id == active_page %}
-              <li class="nav-item active">
-                <a class="nav-link" href="{{ href|e }}">{{ caption|e }}</a>
-              </li>
-            {% else %}
-              <li class="nav-item">
-                <a class="nav-link" href="{{ href|e }}">{{ caption|e }}</a>
-              </li>
-            {% endif %}
+          {% if id == active_page %}
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('views.index') }}{{ href|e }}">{{ caption|e }}</a>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('views.index') }}{{ href|e }}">{{ caption|e }}</a>
+          </li>
+          {% endif %}
           {% endfor %}
         </ul>
         <ul class="navbar-nav ml-auto">
@@ -68,7 +68,7 @@
     {% block job %}{% endblock %}
 
     <!-- Bootstrap core JavaScript
-    ================================================== -->
+         ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/jquery-3.3.1.min.js') }}"></script>
 
