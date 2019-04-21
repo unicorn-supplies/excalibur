@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% set active_page = "jobs" %}
 {% block stylesheet %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/jquery-ui.structure.min.css') }}">
 {% endblock %}
 
 {% block rules %}
 <div class="container">
   <div class="row mb-4 border-bottom mb-5">
     <div class="col-md-12 text-center">
-        <h1 class="display-4 align-items-center d-flex justify-content-center">
-          <span>Jobs</span>
-        </h1>
+      <h1 class="display-4 align-items-center d-flex justify-content-center">
+        <span>Jobs</span>
+      </h1>
     </div>
   </div>
 
@@ -29,19 +30,19 @@
             </thead>
             <tbody>
               {% if jobs_response|length > 0 %}
-                {% for job in jobs_response %}
-                  <tr>
-                    <th width="10%" scope="row">{{ loop.index }}</th>
-                    <td width="30%">{{ job.filename }}</td>
-                    <td width="20%">{{ job.started_at }}</td>
-                    <td width="20%">{{ job.finished_at }}</td>
-                    <td width="20%"><a href="/jobs/{{ job.job_id }}" class="btn btn-sm btn-outline-primary">Download</a></td>
-                  </tr>
-                {% endfor %}
+              {% for job in jobs_response %}
+              <tr>
+                <th width="10%" scope="row">{{ loop.index }}</th>
+                <td width="30%">{{ job.filename }}</td>
+                <td width="20%">{{ job.started_at }}</td>
+                <td width="20%">{{ job.finished_at }}</td>
+                <td width="20%"><a href="/jobs/{{ job.job_id }}" class="btn btn-sm btn-outline-primary">Download</a></td>
+              </tr>
+              {% endfor %}
               {% else %}
-                <tr>
-                  <td colspan="4" style="text-align: center">No jobs started.</td>
-                </tr>
+              <tr>
+                <td colspan="4" style="text-align: center">No jobs started.</td>
+              </tr>
               {% endif %}
             </tbody>
           </table>

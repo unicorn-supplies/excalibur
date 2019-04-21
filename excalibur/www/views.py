@@ -80,7 +80,7 @@ def workspaces(file_id):
     session.close()
     imagepaths, saved_rules = (None for i in range(2))
     filedims, imagedims, detected_areas = ('null' for i in range(3))
-    if file.has_image:
+    if getattr(file, "has_image", False):
         imagepaths = json.loads(file.imagepaths)
         for page in imagepaths:
             imagepaths[page] = imagepaths[page].replace(
@@ -101,8 +101,56 @@ def workspaces(file_id):
 
 
 @views.route('/rules', methods=['GET', 'POST'], defaults={'rule_id': None})
-@views.route('/rules/<string:rule_id>', methods=['GET'])
+@views.route('/rules/<string:rule_id>', methods=['GET', 'DELETE', 'PATCH'])
 def rules(rule_id):
+
+    if request.method == 'DELETE':
+        if rule_id is None:
+            resp = jsonify(error=f"No rule_id provided!")
+            resp.status_code = 400
+            return resp
+
+        session = Session()
+        rule = session.query(Rule).filter(Rule.rule_id == rule_id).first()
+        if not rule:
+            session.close()
+            resp = jsonify(error=f"Rule {rule_id} not found!")
+            resp.status_code = 404
+            return resp
+
+        session.delete(rule)
+        session.commit()
+        session.close()
+        return jsonify(message=f"Rule {rule_id} deleted")
+
+    if request.method == 'PATCH':
+        if rule_id is None:
+            resp = jsonify(error=f"No rule_id provided!")
+            resp.status_code = 400
+            return resp
+
+        if not request.form:
+            resp = jsonify(error=f"No rule_name and/or rule_options provided!")
+            resp.status_code = 400
+            return resp
+
+        session = Session()
+        rule = session.query(Rule).filter(Rule.rule_id == rule_id).first()
+        if not rule:
+            session.close()
+            resp = jsonify(error=f"Rule {rule_id} not found!")
+            resp.status_code = 404
+            return resp
+
+        rule.rule_name = request.form.get("rule_name", rule.rule_name)
+        rule.rule_options = request.form.get("rule_options", rule.rule_options)
+
+        session.add(rule)
+        session.commit()
+        session.close()
+
+        return jsonify(message=f"Rule {rule_id} updated")
+
     if request.method == 'GET':
         if rule_id is not None:
             session = Session()
@@ -113,7 +161,13 @@ def rules(rule_id):
             if rule is not None:
                 message = ''
                 rule_options = json.loads(rule.rule_options)
+
+            if message:
+                resp = jsonify(error=message, rule_options=rule_options)
+                resp.status_code = 404
+                return resp
             return jsonify(message=message, rule_options=rule_options)
+
         session = Session()
         rules = session.query(Rule).order_by(Rule.created_at.desc()).all()
         session.close()
@@ -126,14 +180,15 @@ def rules(rule_id):
             }
             for rule in rules]
         return render_template('rules.html', saved_rules=saved_rules)
-    message='Rule invalid'
+
+    message = 'Rule invalid'
     file = request.files['file-0']
     if file and allowed_filename(file.filename):
         rule_id = generate_uuid()
         created_at = dt.datetime.now()
         rule_name = os.path.splitext(secure_filename(file.filename))[0]
         rule_options = file.read()
-        message = 'Rule saved'
+        message = f'Rule {rule_id} saved'
 
         session = Session()
         r = Rule(
@@ -145,7 +200,12 @@ def rules(rule_id):
         session.add(r)
         session.commit()
         session.close()
-    return jsonify(message=message)
+
+    if message.endswith('saved'):
+        return jsonify(message=message)
+    resp = jsonify(error=message)
+    resp.status_code = 400
+    return resp
 
 
 @views.route('/jobs', methods=['GET', 'POST'], defaults={'job_id': None})
@@ -207,6 +267,15 @@ def jobs(job_id):
         )
         session.add(r)
         session.commit()
+        session.close()
+
+    else:
+        session = Session()
+        rule = session.query(Rule).filter(Rule.rule_id == rule_id).first()
+        if rule:
+            rule.rule_options = request.form['rule_options']
+            session.add(rule)
+            session.commit()
         session.close()
 
     job_id = generate_uuid()

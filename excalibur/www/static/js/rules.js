@@ -5,7 +5,7 @@ String.prototype.format = function () {
     str = str.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
   }
   return str;
-}
+};
 
 const onRuleDownload = (e) => {
   // https://stackoverflow.com/a/30800715/2780127
@@ -15,7 +15,56 @@ const onRuleDownload = (e) => {
   e.nextElementSibling.setAttribute("href", dataStr);
   e.nextElementSibling.setAttribute("download", "{0}.json".format(ruleName));
   e.nextElementSibling.click();
-}
+};
+
+const onRuleDelete = (e) => {
+  const ruleId = e.getAttribute('data-rule-id');
+  const ruleName = $(".rule-name[data-rule-id={0}]".format(ruleId)).val();
+
+  const message = "Delete rule '{0}' ({1}).\nThis cannot be undone!\nAre you sure?".format(ruleName, ruleId);
+
+  if (confirm(message)) {
+    $.ajax({
+      url: "/rules/{0}".format(ruleId),
+      type: "DELETE",
+      cache: false,
+      contentType: false,
+      processData: false,
+      success: function (data) {
+        window.location.reload();
+      }
+    });
+  }
+};
+
+const onRuleUpdate = (e) => {
+  const ruleId = e.getAttribute('data-rule-id');
+  const ruleName = $(".rule-name[data-rule-id={0}]".format(ruleId)).val();
+  const ruleOptions = $(".rule-options[data-rule-id={0}]".format(ruleId)).val();
+
+  var data = new FormData();
+  data.append('rule_name', ruleName);
+  data.append('rule_options', ruleOptions);
+
+  $.ajax({
+    url: "/rules/{0}".format(ruleId),
+    type: "PATCH",
+    cache: false,
+    contentType: false,
+    processData: false,
+    data: data,
+    success: function (data) {
+      console.log(data);
+      window.location.reload();
+    },
+    error: function (data) {
+      alert("{0}: {1}".format(
+        data.statusText,
+        data.responseJSON.error
+      ));
+    }
+  });
+};
 
 $(document).ready(function () {
   $('#rule_upload').on('change', function () {

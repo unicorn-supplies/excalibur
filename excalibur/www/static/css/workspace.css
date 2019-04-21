@@ -10,6 +10,14 @@
   margin: 0;
 }
 
+.form-check-label {
+  vertical-align: middle;
+}
+
+.form-control-sm.form-input-check {
+  vertical-align: middle !important;
+}
+
 .page-container {
   max-height: 100vh;
   min-height: 800px;
@@ -45,33 +53,22 @@ div .image-area {
 
 .draggable-column {
   cursor: ew-resize;
-  position: absolute;
-  width: 20px;
+  position: absolute !important;
+  width: 2px;
+  height: 100%;
   z-index: 200;
+  padding: 0;
 }
 
-.draggable-column > .background {
+.draggable-column > .column-line {
   position: absolute;
   top: 0;
-  left: 0;
   height: 100%;
-  width: 100%;
-  filter:blur(4px);
-  -o-filter:blur(4px);
-  -ms-filter:blur(4px);
-  -moz-filter:blur(4px);
-  -webkit-filter:blur(4px);
-
-  background-color: rgba(175,175,175,0.2);
-}
-
-.line {
-  position: relative;
-  height: 100%;
-  width: 2px;
-  background-color: #2196F3;
-  margin: 0 auto;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  width: 1px;
+  border: none;
+  border-left-style: dotted;
+  border-left-width: 2px;
+  background-color: transparent;
 }
 
 /* .add-separator {} */

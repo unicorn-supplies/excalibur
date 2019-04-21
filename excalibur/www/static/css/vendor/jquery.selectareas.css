@@ -3,6 +3,7 @@
 	overflow: hidden;
 	position: absolute;
 }
+
 .blurred {
 	filter: url("../images/filters.svg#blur3px");
 	-webkit-filter: blur(3px);
@@ -12,12 +13,26 @@
 }
 
 .select-areas-outline {
-	background: #fff url('../images/outline.gif');
+	background: transparent;
 	overflow: hidden;
+	border-width: 2px !important;
+	border-style: dotted !important;
+	border-color: transparent;
+	margin: 0;
+	padding: 0;
+}
+
+.select-areas-background-area {
+	overflow: hidden;
+	background-color: transparent !important;
+	opacity: 1.0 !important;
+	border: none;
+	margin: 0;
+	padding: 0;
 }
 
 .select-areas-resize-handler {
-	background-color: #000;
+	background-color: #00f;
 	border: 1px #fff solid;
 	height: 8px;
 	width: 8px;
@@ -25,7 +40,7 @@
 }
 
 .select-areas-delete-area {
-	background: url('../images/bt-delete.png');
+	background: url('../images/bt-delete-new.png');
 	cursor: pointer;
 	height: 16px;
 	width: 44px;
@@ -33,5 +48,41 @@
 .delete-area {
 	position: absolute;
 	cursor: pointer;
+	padding: 5px;
+}
+
+.select-areas-move-area {
+	background: url('../images/bt-move.png');
+	cursor: move;
+	height: 16px;
+	width: 44px;
+}
+.move-area {
+	position: absolute;
+	cursor: move;
+	padding: 5px;
+}
+
+.select-areas-add-column {
+	background: url('../images/bt-add-column.png');
+	cursor: cell;
+	height: 16px;
+	width: 44px;
+}
+.add-column {
+	position: absolute;
+	cursor: cell;
+	padding: 5px;
+}
+
+.select-areas-setup {
+	background: url('../images/bt-delete.png');
+	cursor: context-menu;
+	height: 16px;
+	width: 44px;
+}
+.setup {
+	position: absolute;
+	cursor: context-menu;
 	padding: 5px;
 }

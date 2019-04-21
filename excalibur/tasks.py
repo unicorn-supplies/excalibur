@@ -6,6 +6,7 @@ import json
 import logging
 import subprocess
 import datetime as dt
+import pandas as pd
 
 import camelot
 from camelot.core import TableList
@@ -37,7 +38,7 @@ def split(file_id):
             imagepath = os.path.join(conf.PDFS_FOLDER, file_id, imagename)
 
             # convert single-page PDF to PNG
-            gs_call = '-q -sDEVICE=png16m -o {} -r300 {}'.format(
+            gs_call = '-q -sDEVICE=pngalpha -dBackgroundColor=16#000000 -o {} -r300 {}'.format(
                 imagepath, filepath)
             gs_call = gs_call.encode().split()
             null = open(os.devnull, 'wb')
@@ -104,19 +105,131 @@ def extract(job_id):
         tables = []
         filepaths = json.loads(file.filepaths)
         for p in pages:
-            kwargs = pages[p]
-            kwargs.update(rule_options)
-            parser = Lattice(**kwargs) if flavor.lower() == 'lattice' else Stream(**kwargs)
-            t = parser.extract_tables(filepaths[p])
-            for _t in t:
-                _t.page = int(p)
-            tables.extend(t)
+            if p not in filepaths:
+                continue
+
+            if flavor.lower() == 'lattice':
+                kwargs = pages[p]
+                parser = Lattice(**kwargs)
+
+                t = parser.extract_tables(filepaths[p])
+                for _t in t:
+                    _t.page = int(p)
+                tables.extend(t)
+
+            else:
+                opts = pages[p]
+                areas, columns = opts.get("table_areas", None), opts.get("columns", None)
+                if areas and columns:
+                    page_order = 1
+                    for area, column in zip(areas, columns):
+                        bbox = [round(v, 2) for v in map(float, area.split(","))] if area else []
+                        cols = list(map(float, column.split(","))) if column else []
+                        split_text = rule_options.get("split_text", False)
+
+                        if cols and bbox:
+                            abs_cols = [round(c + bbox[0], 2) for c in cols]
+                            table_region = bbox
+                            table_area = ",".join(map(str, bbox))
+                            table_columns = ",".join(map(str, abs_cols))
+                            if len(abs_cols) > 4 and split_text:
+                                split_text = False
+
+                        elif bbox:
+                            table_region = bbox
+                            table_area = ",".join(map(str, bbox))
+                            table_columns = None
+                            split_text = False
+
+                        else:
+                            table_region = None
+                            table_area = None
+                            table_columns = None
+
+                        kwargs = dict(
+                            table_regions=[table_region] if table_region else None,
+                            table_areas=[table_area] if table_area else None,
+                            columns=[table_columns] if table_columns else None,
+                            row_tol=rule_options.get("row_close_tol", 2),
+                            column_tol=rule_options.get("col_close_tol", 0),
+                            edge_tol=rule_options.get("edge_close_tol", 50),
+                            flag_size=rule_options.get("flag_size", False),
+                            split_text=split_text,
+                            strip_text=rule_options.get("strip_text", ""),
+                        )
+                        print(f"Using Stream({kwargs!r})")
+                        parser = Stream(**kwargs)
+                        t = parser.extract_tables(filepaths[p])
+                        print(f"Result: {t}")
+                        df = None
+                        for _t in t:
+
+                            _t.page = int(p)
+                            _t.order = page_order
+                            print(f"Table {_t.order}, Page {_t.page}: {_t.parsing_report}")
+
+                            if _t.df.shape == (1, 2):
+                                _t.df = _t.df.T
+
+                            elif _t.shape == (1, 1):
+                                _t.df = pd.concat([_t.df[0], _t.df.replace({0: {_t.df.iat[0, 0]: ''}})[0]], axis=0, ignore_index=True)
+
+                            if len(_t.df.shape) < 2:
+                                _t.df = _t.df.to_frame()
+
+                            if _t.df.shape[1] < 4:
+                                _t.df = _t.df.replace({"": pd.np.nan}).dropna(how="all")
+
+                            if False:
+                                if df is None:
+                                    df = _t.df
+
+
+                                if _t.df.shape[1] == 1:
+                                    if df is not None:
+                                        df = df.append(_t.df[0].to_frame(), ignore_index=True)
+
+                                elif _t.df.shape[1] >= 2:
+                                    if df is not None:
+                                        df = df.append(
+                                            pd.concat([_t.df[i].to_frame() for i in range(_t.df.shape[1])], axis=0, ignore_index=True),
+                                            ignore_index=True
+                                        )
+
+                                if df is not None and len(df.shape) == 1:
+                                    df = df.to_frame()
+
+                                if df is not None:
+                                    _t.df = df
+                                else:
+                                    df = _t.df
+
+                                    print(df)
+                                    print("-------------")
+
+                            print(_t.df)
+                            page_order += 1
+                        tables.extend(t)
+                else:
+                    continue
+
         tables = TableList(tables)
 
         froot, fext = os.path.splitext(file.filename)
         datapath = os.path.dirname(file.filepath)
         for f in ['csv', 'excel', 'json', 'html']:
             f_datapath = os.path.join(datapath, f)
+            for dirname, dirs, files in os.walk(datapath):
+                for of in files:
+                    if of.endswith(("." + f, ".zip")):
+                        fp = os.path.join(dirname, of)
+                        os.remove(fp)
+
+            try:
+                os.removedirs(f_datapath)
+            except FileNotFoundError:
+                pass
+
             mkdirs(f_datapath)
             ext = f if f != 'excel' else 'xlsx'
             f_datapath = os.path.join(f_datapath, '{}.{}'.format(froot, ext))
