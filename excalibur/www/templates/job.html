@@ -1,6 +1,10 @@
 {% extends "base.html" %}
+{$ set use_cells = False %}
 {% set active_page = "jobs" %}
 {% block stylesheet %}
+{% if not is_finished %}
+<meta http-equiv="refresh" content="3">
+{% endif %}
 {% endblock %}
 
 {% block job %}
@@ -36,9 +40,10 @@
     </div>
   </div>
   {% for d in data %}
+  {% set table_loop = loop %}
   <div class="card depth-1 mb-5">
     <div class="card-body p-0">
-      <table class="table text-left table-bordered table-hover mb-0" id="table-{{ loop.index0 }}">
+      <table class="table text-left table-bordered mb-0" id="table-{{ loop.index0 }}">
         <caption class="text-right text-dark mr-3"> <h6>{{ d.title }}</h6> </caption>
         <thead class="thead-light">
           <tr>
@@ -49,9 +54,44 @@
         </thead>
         <tbody>
           {% for record in d.records %}
+          {% set row_loop = loop %}
           <tr>
             {% for column in d.columns %}
-            <td>{{ record[column] }}</td>
+            {% set col_loop = loop %}
+            {% set full_path = "%s-%s-%s"|format(table_loop.index, row_loop.index, col_loop.index) %}
+            <td class="droppable-cell" id="cell-{{ full_path }}">
+              {% if record[column] and use_cells %}
+              <div class="form-group draggable-group ui-front">
+                <div class="input-group input-group-sm mb-0">
+                  <div class="input-group-prepend">
+                    <label class="input-group-text" for="field-{{ full_path }}">
+                      Field
+                    </label>
+                  </div>
+                  <select class="custom-select custom-select-sm cell-field fields" id="field-{{ full_path }}">
+                  </select>
+                </div>
+                <div class="input-group input-group-sm mb-0">
+                  <div class="input-group-prepend">
+                    <label class="input-group-text input-group-sm cell-value-label" for="value-{{ full_path }}">
+                      Value
+                    </label>
+                  </div>
+                  <input type="text" class="form-control cell-value" title="Double-click to edit" id="value-{{ full_path }}" value="{{ record[column] }}" readonly>
+                </div>
+                <div class="input-group input-group-sm mb-0">
+                  <div class="input-group-prepend">
+                    <label class="input-group-text input-group-sm cell-link-label" for="link-{{ full_path }}" title="Drag to the field to link to this label.">
+                      Link
+                    </label>
+                  </div>
+                  <input type="text" placeholder="Linked to..." readonly type="text" class="form-control cell-link" value="" id="link-{{ full_path }}">
+                </div>
+              </div>
+              {% else %}
+              {{ record[column] }}
+              {% endif %}
+            </td>
             {% endfor %}
           </tr>
           {% endfor %}
@@ -65,12 +105,11 @@
 <div class="container">
   <div class="jumbotron">
     <h1 class="display-4">Refresh</h1>
-    <p class="lead">Please wait while the tables are extracted. Refresh again in some time.</p>
+    <p class="lead">Please wait while the tables are extracted. <a href="javascript:location.reload();">Refresh</a> again or wait a few seconds...</p>
   </div>
 </div>
 {% endif %}
 {% endblock %}
-
 {% block javascript %}
 <script type="text/javascript" src="{{ url_for('static', filename='js/job.js') }}"></script>
 {% endblock %}

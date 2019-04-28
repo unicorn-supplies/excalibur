@@ -65,7 +65,7 @@
               </tr>
               <tr id="r-{{ rule.rule_id }}" class="collapse">
                 <td colspan="4">
-                  <textarea rows="10" data-rule-id="{{ rule.rule_id }}" class="rule-options form-control">{{ rule.rule_options|pretty }}</textarea>
+                  <textarea rows="10" data-rule-id="{{ rule.rule_id }}" class="rule-options form-control">{{ rule.rule_options_safe|pretty }}</textarea>
                 </td>
               </tr>
               {% endfor %}

@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import os
+import datetime as dt
 import glob
 import json
 import logging
-import subprocess
-import datetime as dt
+import os
+
 import pandas as pd
 
-import camelot
 from camelot.core import TableList
-from camelot.parsers import Lattice, Stream
 from camelot.ext.ghostscript import Ghostscript
+from camelot.parsers import Lattice, Stream
 
 from . import configuration as conf
-from .models import File, Rule, Job
+from .models import File, Job, Rule
 from .settings import Session
 from .utils.file import mkdirs
-from .utils.task import (get_pages, save_page, get_page_layout, get_file_dim,
-                         get_image_dim)
+from .utils.task import get_file_dim, get_image_dim, get_pages, save_page
 
 
 def split(file_id):
@@ -27,22 +25,25 @@ def split(file_id):
         file = session.query(File).filter(File.file_id == file_id).first()
         extract_pages, total_pages = get_pages(file.filepath, file.pages)
 
-        filenames, filepaths, imagenames, imagepaths, filedims, imagedims, detected_areas = ({} for i in range(7))
+        filenames, filepaths, imagenames, imagepaths, filedims, imagedims, detected_areas = (
+            {} for i in range(7)
+        )
         for page in extract_pages:
             # extract into single-page PDF
             save_page(file.filepath, page)
 
-            filename = 'page-{}.pdf'.format(page)
+            filename = "page-{}.pdf".format(page)
             filepath = os.path.join(conf.PDFS_FOLDER, file_id, filename)
-            imagename = ''.join([filename.replace('.pdf', ''), '.png'])
+            imagename = "".join([filename.replace(".pdf", ""), ".png"])
             imagepath = os.path.join(conf.PDFS_FOLDER, file_id, imagename)
 
             # convert single-page PDF to PNG
-            gs_call = '-q -sDEVICE=pngalpha -dBackgroundColor=16#000000 -o {} -r300 {}'.format(
-                imagepath, filepath)
+            gs_call = "-q -sDEVICE=pngalpha -dBackgroundColor=16#000000 -o {} -r300 {}".format(
+                imagepath, filepath
+            )
             gs_call = gs_call.encode().split()
-            null = open(os.devnull, 'wb')
-            with Ghostscript(*gs_call, stdout=null) as gs:
+            null = open(os.devnull, "wb")
+            with Ghostscript(*gs_call, stdout=null):
                 pass
             null.close()
 
@@ -71,8 +72,7 @@ def split(file_id):
                     x1, y1, x2, y2 = table._bbox
                     stream_areas.append((x1, y2, x2, y1))
 
-            detected_areas[page] = {
-                'lattice': lattice_areas, 'stream': stream_areas}
+            detected_areas[page] = {"lattice": lattice_areas, "stream": stream_areas}
 
         file.extract_pages = json.dumps(extract_pages)
         file.total_pages = total_pages
@@ -91,7 +91,7 @@ def split(file_id):
         logging.exception(e)
 
 
-def extract(job_id):
+def extract(job_id):  # noqa
     try:
         session = Session()
         job = session.query(Job).filter(Job.job_id == job_id).first()
@@ -99,8 +99,8 @@ def extract(job_id):
         file = session.query(File).filter(File.file_id == job.file_id).first()
 
         rule_options = json.loads(rule.rule_options)
-        flavor = rule_options.pop('flavor')
-        pages = rule_options.pop('pages')
+        flavor = rule_options.pop("flavor")
+        pages = rule_options.pop("pages")
 
         tables = []
         filepaths = json.loads(file.filepaths)
@@ -108,7 +108,7 @@ def extract(job_id):
             if p not in filepaths:
                 continue
 
-            if flavor.lower() == 'lattice':
+            if flavor.lower() == "lattice":
                 kwargs = pages[p]
                 parser = Lattice(**kwargs)
 
@@ -119,11 +119,18 @@ def extract(job_id):
 
             else:
                 opts = pages[p]
-                areas, columns = opts.get("table_areas", None), opts.get("columns", None)
+                areas, columns = (
+                    opts.get("table_areas", None),
+                    opts.get("columns", None),
+                )
                 if areas and columns:
                     page_order = 1
                     for area, column in zip(areas, columns):
-                        bbox = [round(v, 2) for v in map(float, area.split(","))] if area else []
+                        bbox = (
+                            [round(v, 2) for v in map(float, area.split(","))]
+                            if area
+                            else []
+                        )
                         cols = list(map(float, column.split(","))) if column else []
                         split_text = rule_options.get("split_text", False)
 
@@ -133,7 +140,7 @@ def extract(job_id):
                             table_area = ",".join(map(str, bbox))
                             table_columns = ",".join(map(str, abs_cols))
                             if len(abs_cols) > 4 and split_text:
-                                split_text = False
+                                pass #split_text = False
 
                         elif bbox:
                             table_region = bbox
@@ -161,51 +168,32 @@ def extract(job_id):
                         parser = Stream(**kwargs)
                         t = parser.extract_tables(filepaths[p])
                         print(f"Result: {t}")
-                        df = None
                         for _t in t:
 
                             _t.page = int(p)
                             _t.order = page_order
-                            print(f"Table {_t.order}, Page {_t.page}: {_t.parsing_report}")
+                            print(
+                                f"Table {_t.order}, Page {_t.page}: {_t.parsing_report}"
+                            )
 
                             if _t.df.shape == (1, 2):
                                 _t.df = _t.df.T
 
                             elif _t.shape == (1, 1):
-                                _t.df = pd.concat([_t.df[0], _t.df.replace({0: {_t.df.iat[0, 0]: ''}})[0]], axis=0, ignore_index=True)
+                                _t.df = pd.concat(
+                                    [
+                                        _t.df[0],
+                                        _t.df.replace({0: {_t.df.iat[0, 0]: ""}})[0],
+                                    ],
+                                    axis=0,
+                                    ignore_index=True,
+                                )
 
                             if len(_t.df.shape) < 2:
                                 _t.df = _t.df.to_frame()
 
                             if _t.df.shape[1] < 4:
-                                _t.df = _t.df.replace({"": pd.np.nan}).dropna(how="all")
-
-                            if False:
-                                if df is None:
-                                    df = _t.df
-
-
-                                if _t.df.shape[1] == 1:
-                                    if df is not None:
-                                        df = df.append(_t.df[0].to_frame(), ignore_index=True)
-
-                                elif _t.df.shape[1] >= 2:
-                                    if df is not None:
-                                        df = df.append(
-                                            pd.concat([_t.df[i].to_frame() for i in range(_t.df.shape[1])], axis=0, ignore_index=True),
-                                            ignore_index=True
-                                        )
-
-                                if df is not None and len(df.shape) == 1:
-                                    df = df.to_frame()
-
-                                if df is not None:
-                                    _t.df = df
-                                else:
-                                    df = _t.df
-
-                                    print(df)
-                                    print("-------------")
+                                _t.df = _t.df.replace({"": pd.np.nan}).dropna(how="all").fillna("")
 
                             print(_t.df)
                             page_order += 1
@@ -217,7 +205,7 @@ def extract(job_id):
 
         froot, fext = os.path.splitext(file.filename)
         datapath = os.path.dirname(file.filepath)
-        for f in ['csv', 'excel', 'json', 'html']:
+        for f in ["csv", "excel", "json", "html"]:
             f_datapath = os.path.join(datapath, f)
             for dirname, dirs, files in os.walk(datapath):
                 for of in files:
@@ -231,16 +219,18 @@ def extract(job_id):
                 pass
 
             mkdirs(f_datapath)
-            ext = f if f != 'excel' else 'xlsx'
-            f_datapath = os.path.join(f_datapath, '{}.{}'.format(froot, ext))
+            ext = f if f != "excel" else "xlsx"
+            f_datapath = os.path.join(f_datapath, "{}.{}".format(froot, ext))
             tables.export(f_datapath, f=f, compress=True)
 
         # for render
-        jsonpath = os.path.join(datapath, 'json')
-        jsonpath = os.path.join(jsonpath, '{}.json'.format(froot))
-        tables.export(jsonpath, f='json')
-        render_files = {os.path.splitext(os.path.basename(f))[0]: f
-            for f in glob.glob(os.path.join(datapath, 'json/*.json'))}
+        jsonpath = os.path.join(datapath, "json")
+        jsonpath = os.path.join(jsonpath, "{}.json".format(froot))
+        tables.export(jsonpath, f="json")
+        render_files = {
+            os.path.splitext(os.path.basename(f))[0]: f
+            for f in glob.glob(os.path.join(datapath, "json/*.json"))
+        }
 
         job.datapath = datapath
         job.render_files = json.dumps(render_files)

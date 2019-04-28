@@ -15,7 +15,7 @@ $(document).ready(function () {
     $(this).next('.uploadFile__label').html(filename);
   })
 
-  $('#upload').on('click', function () {
+  const onUpload = function () {
     var data = new FormData();
     // TODO: add support to upload multiple files
     $.each($('#file')[0].files, function (i, file) {
@@ -23,6 +23,8 @@ $(document).ready(function () {
     });
     var pages = $('#pages').val() ? $('#pages').val() : 1;
     data.append('pages', pages);
+    var ocr_my_pdf = $('#ocr_my_pdf').val() ? parseInt($('#ocr_my_pdf').val()) : 0;
+    data.append('ocr_my_pdf', ocr_my_pdf);
     $.ajax({
       url: '/ui/files',
       type: 'POST',
@@ -35,5 +37,11 @@ $(document).ready(function () {
         window.location.replace(redirect);
       }
     });
+  };
+
+  $("#upload").bind("click", function() {
+    $("#upload").attr("disabled", true);
+    $("#upload").unbind("click");
+    onUpload();
   });
 });

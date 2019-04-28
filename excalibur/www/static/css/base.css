@@ -109,3 +109,26 @@ input:active, .form-control:active {
 .draggable-column.ui-draggable.ui-draggable-handle {
   cursor: col-resize;
 }
+
+.ui-draggable.cell-link-label {
+  color: #000;
+  background-color: #eef;
+}
+
+.ui-draggable.ui-draggable-dragging.cell-link-label {
+  background-color: #77f;
+  opacity: 0.5;
+  font-weight: bold;
+}
+
+.ui-droppable.ui-droppable-active.cell-value-label, .hovering {
+  opacity: 0.7;
+  color: #000;
+  background-color: #afa;
+}
+
+.ui-droppable.ui-droppable-hover.cell-value-label {
+  font-weight: bold;
+  opacity: 1;
+  background-color: #0f0;
+}
