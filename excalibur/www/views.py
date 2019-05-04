@@ -354,45 +354,6 @@ def jobs(job_id):
     return jsonify(job_id=job_id)
 
 
-@views.route("/jobs/<string:job_id>/<string:page>/<string:table>/", methods=["GET"])
-def get_table(job_id, page, table):
-
-    page = int(page or 1)
-    table = int(table or 1)
-    session = Session()
-    job = session.query(Job).filter(Job.job_id == job_id).first()
-    session.close()
-
-    data = []
-    render_files = json.loads(job.render_files)
-    regex = r"page-(\d+)-table-(\d+)"
-    for k in sorted(
-        render_files,
-        key=lambda x: (int(re.split(regex, x)[1]), int(re.split(regex, x)[2])),
-    ):
-        page_table = k.partition("-page-")[-1]
-        df_page, _, df_table = page_table.partition("-table-")
-        df_page = int(df_page)
-        df_table = int(df_table)
-        if page != df_page or table != df_table:
-            continue
-
-        df = pd.read_json(render_files[k])
-        columns = df.columns.values.tolist()
-        records = df.to_dict("records")
-        data.append(
-            {
-                "title": k,
-                "columns": columns,
-                "records": records,
-                "job_id": job_id,
-                "page": df_page,
-                "table": df_table,
-            }
-        )
-    return jsonify(data)
-
-
 @views.route("/download", methods=["POST"])
 def download():
     job_id = request.form["job_id"]

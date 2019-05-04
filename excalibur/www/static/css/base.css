@@ -55,15 +55,53 @@ input:active, .form-control:active {
 
 /* FILES */
 
-
 .table td, .table th {
   /* OVERWRITE */
   vertical-align: middle;
 }
 
-.table-hover tbody tr:hover {
-  /* OVERWRITE */
-  background-color: rgba(0,0,0,.02);
+/* JOBS */
+
+.table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.table td, .table th {
+  padding: 10px;
+  position: relative;
+}
+
+.table tbody > tr > td:first-child {
+  width: 1rem;
+  background: #efefefaa;
+  font-weight: bold;
+}
+
+.table tbody > tr > td:first-child:hover::after {
+  background-color: rgba(0,0,255,.25) !important;
+  content: '\00a0';
+  height: 10000px;
+  left: 0;
+  position: absolute;
+  top: -5000px;
+  width: 100%;
+}
+
+.table tr:hover{
+  background-color: rgba(0,0,255,.25);
+}
+
+.table td:hover::after, .table th:hover::after {
+  background-color: rgba(0,0,255,.25);
+  content: '\00a0';
+  height: 10000px;
+  left: 0;
+  position: absolute;
+  top: -5000px;
+  width: 100%;
 }
 
 .uploadFile .uploadFile__input {
@@ -102,7 +140,6 @@ input:active, .form-control:active {
   border-style: solid;
   box-shadow: inset 0px 0px 0px 0.05em #2196F3;
 }
-
 
 /* Workspace */
 
