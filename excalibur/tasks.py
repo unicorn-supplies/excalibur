@@ -140,7 +140,7 @@ def extract(job_id):  # noqa
                             table_area = ",".join(map(str, bbox))
                             table_columns = ",".join(map(str, abs_cols))
                             if len(abs_cols) > 4 and split_text:
-                                pass #split_text = False
+                                pass  # split_text = False
 
                         elif bbox:
                             table_region = bbox
@@ -193,7 +193,11 @@ def extract(job_id):  # noqa
                                 _t.df = _t.df.to_frame()
 
                             if _t.df.shape[1] < 4:
-                                _t.df = _t.df.replace({"": pd.np.nan}).dropna(how="all").fillna("")
+                                _t.df = (
+                                    _t.df.replace({"": pd.np.nan})
+                                    .dropna(how="all")
+                                    .fillna("")
+                                )
 
                             print(_t.df)
                             page_order += 1
@@ -209,7 +213,7 @@ def extract(job_id):  # noqa
             f_datapath = os.path.join(datapath, f)
             for dirname, dirs, files in os.walk(datapath):
                 for of in files:
-                    if of.endswith(("." + f, ".zip")):
+                    if of.endswith(("." + f, ".zip", ".xlsx")):
                         fp = os.path.join(dirname, of)
                         os.remove(fp)
 
@@ -218,9 +222,12 @@ def extract(job_id):  # noqa
             except FileNotFoundError:
                 pass
 
+        for f in ["csv", "excel", "json", "html"]:
+            f_datapath = os.path.join(datapath, f)
             mkdirs(f_datapath)
             ext = f if f != "excel" else "xlsx"
             f_datapath = os.path.join(f_datapath, "{}.{}".format(froot, ext))
+            print(f"Exporting as {f} to {f_datapath}")
             tables.export(f_datapath, f=f, compress=True)
 
         # for render
