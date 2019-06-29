@@ -26,14 +26,14 @@ $(document).ready(function () {
     var ocr_my_pdf = $('#ocr_my_pdf').val() ? parseInt($('#ocr_my_pdf').val()) : 0;
     data.append('ocr_my_pdf', ocr_my_pdf);
     $.ajax({
-      url: '/ui/files',
+      url: '/files',
       type: 'POST',
       cache: false,
       contentType: false,
       data: data,
       processData: false,
       success: function (data) {
-        var redirect = '{0}//{1}/ui/workspaces/{2}'.format(window.location.protocol, window.location.host, data['file_id']);
+        var redirect = '{0}//{1}/workspaces/{2}'.format(window.location.protocol, window.location.host, data['file_id']);
         window.location.replace(redirect);
       }
     });

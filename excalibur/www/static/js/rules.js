@@ -25,7 +25,7 @@ const onRuleDelete = (e) => {
 
   if (confirm(message)) {
     $.ajax({
-      url: "/ui/rules/{0}".format(ruleId),
+      url: "/rules/{0}".format(ruleId),
       type: "DELETE",
       cache: false,
       contentType: false,
@@ -47,7 +47,7 @@ const onRuleUpdate = (e) => {
   data.append('rule_options', ruleOptions);
 
   $.ajax({
-    url: "/ui/rules/{0}".format(ruleId),
+    url: "/rules/{0}".format(ruleId),
     type: "PATCH",
     cache: false,
     contentType: false,
@@ -74,7 +74,7 @@ $(document).ready(function () {
       data.append('file-' + i, file);
     });
     $.ajax({
-      url: '/ui/rules',
+      url: '/rules',
       type: 'POST',
       cache: false,
       contentType: false,

@@ -69,7 +69,7 @@ const onSavedRuleClick = function (e) {
   const rule_id = e.getAttribute('data-rule-id');
   globalRuleId = rule_id;
   $.ajax({
-    url: '/ui/rules/{0}'.format(rule_id),
+    url: '/rules/{0}'.format(rule_id),
     type: 'GET',
     success: function (data) {
       if (data['message'] == 'Rule not found') {
@@ -256,7 +256,7 @@ const startJob = function () {
   const loc = window.location.pathname.split('/');
   ruleOptions = getRuleOptions();
   $.ajax({
-    url: '/ui/jobs',
+    url: '/jobs',
     data: {
       file_id: loc[loc.length - 1],
       rule_id: globalRuleId || null,
@@ -264,7 +264,7 @@ const startJob = function () {
     },
     type: 'POST',
     success: function (data) {
-      const redirectUrl = '{0}//{1}/ui/jobs/{2}'.format(window.location.protocol, window.location.host, data['job_id']);
+      const redirectUrl = '{0}//{1}/jobs/{2}'.format(window.location.protocol, window.location.host, data['job_id']);
       window.location.replace(redirectUrl);
     },
     error: function (error) {
