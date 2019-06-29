@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import traceback
 
 from .. import configuration as conf
@@ -69,6 +70,7 @@ def ocr_file(
     except Exception as e:
         print(f"OCR error:{e!s}")
         traceback.print_exc()
+        sys.exit(1)
 
     print(f"OCR success: input={pdf_or_image_filename}, output={output_pdf}")
     return output_pdf
