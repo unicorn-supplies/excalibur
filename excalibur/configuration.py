@@ -136,12 +136,13 @@ conf.read(EXCALIBUR_CONFIG)
 ALLOWED_EXTENSIONS = ["pdf", "json"]
 SECRET_KEY = conf.get("webserver", "SECRET_KEY")
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-PDFS_FOLDER = conf.get("core", "PDFS_FOLDER") or os.path.join(PROJECT_ROOT, "www/static/uploads")
+STATIC_DIR = os.path.join(PROJECT_ROOT, "www/static/uploads")
+PDFS_FOLDER = UPLOADS_DIR = conf.get("core", "PDFS_FOLDER") or os.path.join(PROJECT_ROOT, "uploads")
 USING_SQLITE = (
     True if conf.get("core", "SQL_ALCHEMY_CONN").startswith("sqlite") else False
 )
-APPLICATION_ROOT = "/"
-STATIC_URL_PATH = "/static"
+APPLICATION_ROOT = conf.get("core", "APPLICATION_URL_ROOT") or "/"
+STATIC_URL_PATH = conf.get("core", "STATIC_URL_ROOT") or "/static"
 
 get = conf.get
 has_option = conf.has_option

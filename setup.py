@@ -13,6 +13,7 @@ with open('README.md', 'r') as f:
     readme = f.read()
 
 requires = [
+    'OCRmyPDF',
     'camelot-py[cv]>=0.7.1',
     'celery>=4.1.1',
     'Click>=7.0',
